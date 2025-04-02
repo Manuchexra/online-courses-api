@@ -1,1 +1,1 @@
-# online-courses-api
+OPEN-COURSE-API

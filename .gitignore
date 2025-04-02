@@ -1,2 +1,35 @@
+# Python fayllari
+__pycache__/
+*.py[cod]
+
+# Django fayllari
+*.log
+*.pot
+*.pyc
+*.pyo
+*.sqlite3
+db.sqlite3
+media/
+staticfiles/
+*.log
+
+# Environments
 .env
-venv
+.venv/
+env/
+venv/
+
+# IDE va tahrirlovchi konfiguratsiyalari
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS tomonidan yaratiladigan fayllar
+.DS_Store
+Thumbs.db
+
+# Kompilyatsiya qilingan fayllar
+*.egg-info/
+dist/
+build/
