@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Course, Chapter, Lesson
+from .models import Course, Chapter, Lesson, Enrollment
 
 @admin.register(Course)
 class CourseAdmin(admin.ModelAdmin):
@@ -19,3 +19,9 @@ class LessonAdmin(admin.ModelAdmin):
     list_display = ('title', 'chapter', 'is_free_preview')
     search_fields = ('title', 'chapter__title')
     list_filter = ('is_free_preview',)
+
+@admin.register(Enrollment)
+class EnrollmentAdmin(admin.ModelAdmin):
+    list_display = ('user', 'course', 'enrolled_at')
+    search_fields = ('user__username', 'course__title')
+    list_filter = ('enrolled_at',)
