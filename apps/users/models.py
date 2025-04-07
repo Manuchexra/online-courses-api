@@ -62,6 +62,8 @@ class OpeningTime(BaseModel):
 
 
 class User(AbstractUser):
+    class Meta:
+        db_table = 'users_user'
     _validate_email = RegexValidator(
         regex=r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$',
         message='Enter a valid email address'
