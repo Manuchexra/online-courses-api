@@ -126,8 +126,12 @@ class ConfirmEmailView(APIView):
         }
     )
     def post(self, request):
-        user_id = request.data.get("user_id")
-        code = request.data.get("code")
+        serializer = ConfirmationCodeSerializer(data=request.data)
+        if not serializer.is_valid():
+            return Response(serializer.errors, status=400)
+
+        user_id = serializer.validated_data["user_id"]
+        code = serializer.validated_data["code"]
 
         try:
             user = User.objects.get(id=user_id)
@@ -135,13 +139,21 @@ class ConfirmEmailView(APIView):
             return Response({"error": "User not found"}, status=404)
 
         cached_code = cache.get(f"confirmation_code_{user.id}")
-        if not cached_code or cached_code != code:
+        if not cached_code:
+            return Response({"error": "Invalid or expired code"}, status=400)
+
+        # Convert cached_code to integer for comparison
+        try:
+            cached_code = int(cached_code)
+        except (ValueError, TypeError):
+            return Response({"error": "Invalid or expired code"}, status=400)
+
+        if cached_code != code:
             return Response({"error": "Invalid or expired code"}, status=400)
 
         user.auth_status = 'confirmed'
         user.save()
         return Response(user.tokens(), status=200)
-
 class ResetPasswordView(APIView):
     permission_classes = [AllowAny]
 
