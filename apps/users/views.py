@@ -19,42 +19,54 @@ from .serializers import (
     is_phone
 )
 from .utils import send_confirmation_code_to_user, generate_confirmation_code, send_verification_code_to_user
-<<<<<<< HEAD
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.views import TokenObtainPairView
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
-
 
 class LoginAPIView(TokenObtainPairView):
     permission_classes = [AllowAny]
     serializer_class = TokenObtainPairSerializer
 
-=======
-from drf_yasg import openapi
->>>>>>> 76f63b2 (1)
-
+    @swagger_auto_schema(
+        request_body=TokenObtainPairSerializer,
+        responses={
+            200: openapi.Response(
+                description="Successful login with access and refresh tokens",
+                schema=openapi.Schema(
+                    type=openapi.TYPE_OBJECT,
+                    properties={
+                        'refresh': openapi.Schema(type=openapi.TYPE_STRING, description='JWT refresh token'),
+                        'access': openapi.Schema(type=openapi.TYPE_STRING, description='JWT access token'),
+                    },
+                    required=['refresh', 'access']
+                )
+            ),
+            400: "Invalid credentials",
+            401: "Unauthorized"
+        }
+    )
+    def post(self, request, *args, **kwargs):
+        return super().post(request, *args, **kwargs)
 
 class UserRegisterAPIView(generics.GenericAPIView):
     queryset = User.objects.all()
     serializer_class = UserSerializer
-<<<<<<< HEAD
     permission_classes = [AllowAny]
-=======
 
     @swagger_auto_schema(
         request_body=UserSerializer,
         responses={
             200: openapi.Response(
-                description="Foydalanuvchi ID bilan muvaffaqiyatli ro'yxatdan o'tdi",
+                description="User successfully registered",
                 schema=openapi.Schema(
                     type=openapi.TYPE_OBJECT,
                     properties={
-                        'user_id': openapi.Schema(type=openapi.TYPE_INTEGER, description='Foydalanuvchi IDsi')
+                        'user_id': openapi.Schema(type=openapi.TYPE_INTEGER, description='ID of the registered user')
                     },
                     required=['user_id']
                 )
             ),
-            400: "Noto‘g‘ri ma'lumot yuborildi"
+            400: "Invalid input data"
         }
     )
     def post(self, request, *args, **kwargs):
@@ -67,13 +79,52 @@ class UserRegisterAPIView(generics.GenericAPIView):
 class UserListAPIView(generics.ListAPIView):
     queryset = User.objects.all()
     serializer_class = UserSerializer
->>>>>>> 76f63b2 (1)
+    permission_classes = [IsAuthenticated]
 
+    @swagger_auto_schema(
+        responses={
+            200: openapi.Response(
+                description="List of all users",
+                schema=openapi.Schema(
+                    type=openapi.TYPE_ARRAY,
+                    items=openapi.Items(
+                        type=openapi.TYPE_OBJECT,
+                        properties={
+                            'id': openapi.Schema(type=openapi.TYPE_INTEGER, description='User ID'),
+                            'email': openapi.Schema(type=openapi.TYPE_STRING, description='User email'),
+                            'phone_number': openapi.Schema(type=openapi.TYPE_STRING, description='User phone number'),
+                            'auth_status': openapi.Schema(type=openapi.TYPE_STRING, description='Authentication status'),
+                        }
+                    )
+                )
+            ),
+            401: "Unauthorized"
+        }
+    )
+    def get(self, request, *args, **kwargs):
+        return super().get(request, *args, **kwargs)
 
 class ConfirmEmailView(APIView):
     permission_classes = [AllowAny]
 
-    @swagger_auto_schema(request_body=ConfirmationCodeSerializer)
+    @swagger_auto_schema(
+        request_body=ConfirmationCodeSerializer,
+        responses={
+            200: openapi.Response(
+                description="Email confirmed successfully with tokens",
+                schema=openapi.Schema(
+                    type=openapi.TYPE_OBJECT,
+                    properties={
+                        'refresh': openapi.Schema(type=openapi.TYPE_STRING, description='JWT refresh token'),
+                        'access': openapi.Schema(type=openapi.TYPE_STRING, description='JWT access token'),
+                    },
+                    required=['refresh', 'access']
+                )
+            ),
+            400: "Invalid or expired code",
+            404: "User not found"
+        }
+    )
     def post(self, request):
         user_id = request.data.get("user_id")
         code = request.data.get("code")
@@ -91,11 +142,27 @@ class ConfirmEmailView(APIView):
         user.save()
         return Response(user.tokens(), status=200)
 
-
 class ResetPasswordView(APIView):
     permission_classes = [AllowAny]
 
-    @swagger_auto_schema(request_body=ResetPasswordSerializer)
+    @swagger_auto_schema(
+        request_body=ResetPasswordSerializer,
+        responses={
+            200: openapi.Response(
+                description="Confirmation code sent to user",
+                schema=openapi.Schema(
+                    type=openapi.TYPE_OBJECT,
+                    properties={
+                        'user_id': openapi.Schema(type=openapi.TYPE_INTEGER, description='User ID'),
+                        'message': openapi.Schema(type=openapi.TYPE_STRING, description='Confirmation message'),
+                    },
+                    required=['user_id', 'message']
+                )
+            ),
+            400: "Invalid email or phone",
+            404: "User not found"
+        }
+    )
     def post(self, request):
         phone_or_email = request.data.get('phone_or_email')
 
@@ -119,11 +186,27 @@ class ResetPasswordView(APIView):
 
         return Response({"user_id": user.id, "message": "Code sent"}, status=200)
 
-
 class ConfirmResetCodeView(APIView):
     permission_classes = [AllowAny]
 
-    @swagger_auto_schema(request_body=ConfirmationCodeSerializer)
+    @swagger_auto_schema(
+        request_body=ConfirmationCodeSerializer,
+        responses={
+            200: openapi.Response(
+                description="Reset code confirmed successfully with tokens",
+                schema=openapi.Schema(
+                    type=openapi.TYPE_OBJECT,
+                    properties={
+                        'refresh': openapi.Schema(type=openapi.TYPE_STRING, description='JWT refresh token'),
+                        'access': openapi.Schema(type=openapi.TYPE_STRING, description='JWT access token'),
+                    },
+                    required=['refresh', 'access']
+                )
+            ),
+            400: "Invalid or expired code",
+            404: "User not found"
+        }
+    )
     def post(self, request):
         user_id = request.data.get("user_id")
         code = request.data.get("code")
@@ -139,24 +222,33 @@ class ConfirmResetCodeView(APIView):
 
         return Response(user.tokens(), status=200)
 
-
 class ConfirmPasswordView(APIView):
     permission_classes = [IsAuthenticated]
 
-    @swagger_auto_schema(request_body=VerifyResetPassword)
+    @swagger_auto_schema(
+        request_body=VerifyResetPassword,
+        responses={
+            200: openapi.Response(
+                description="Password changed successfully",
+                schema=openapi.Schema(
+                    type=openapi.TYPE_OBJECT,
+                    properties={
+                        'message': openapi.Schema(type=openapi.TYPE_STRING, description='Success message'),
+                    },
+                    required=['message']
+                )
+            ),
+            400: "Invalid input data",
+            401: "Unauthorized"
+        }
+    )
     def post(self, request):
         password1 = request.data.get("password_one")
-        password2 = request.data.get("password_two")
-
-        if password1 != password2:
-            return Response({"error": "Passwords do not match"}, status=400)
 
         user = request.user
         user.set_password(password1)
         user.save()
-
         return Response({"message": "Password changed successfully"}, status=200)
-
 
 class LogoutView(APIView):
     permission_classes = [IsAuthenticated]
@@ -166,9 +258,23 @@ class LogoutView(APIView):
             type=openapi.TYPE_OBJECT,
             required=["refresh"],
             properties={
-                "refresh": openapi.Schema(type=openapi.TYPE_STRING)
+                "refresh": openapi.Schema(type=openapi.TYPE_STRING, description='JWT refresh token')
             }
-        )
+        ),
+        responses={
+            205: openapi.Response(
+                description="Logged out successfully",
+                schema=openapi.Schema(
+                    type=openapi.TYPE_OBJECT,
+                    properties={
+                        'message': openapi.Schema(type=openapi.TYPE_STRING, description='Success message'),
+                    },
+                    required=['message']
+                )
+            ),
+            400: "Invalid refresh token",
+            401: "Unauthorized"
+        }
     )
     def post(self, request):
         try:
@@ -179,14 +285,40 @@ class LogoutView(APIView):
         except Exception as e:
             return Response({"error": str(e)}, status=400)
 
-
 class UserAccountAPIView(generics.RetrieveAPIView):
     queryset = User.objects.all()
     serializer_class = UserAccountSerializer
     permission_classes = [IsAuthenticated]
 
+    @swagger_auto_schema(
+        responses={
+            200: openapi.Response(
+                description="User account details retrieved successfully",
+                schema=UserAccountSerializer
+            ),
+            401: "Unauthorized",
+            404: "User not found"
+        }
+    )
+    def get(self, request, *args, **kwargs):
+        return super().get(request, *args, **kwargs)
 
 class UserUpdateAPIView(generics.UpdateAPIView):
     queryset = User.objects.all()
     serializer_class = UserUpdateSerializer
     permission_classes = [IsAuthenticated]
+
+    @swagger_auto_schema(
+        request_body=UserUpdateSerializer,
+        responses={
+            200: openapi.Response(
+                description="User details updated successfully",
+                schema=UserUpdateSerializer
+            ),
+            400: "Invalid input data",
+            401: "Unauthorized",
+            404: "User not found"
+        }
+    )
+    def put(self, request, *args, **kwargs):
+        return super().put(request, *args, **kwargs)
