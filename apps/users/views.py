@@ -19,6 +19,7 @@ from .serializers import (
     is_phone
 )
 from .utils import send_confirmation_code_to_user, generate_confirmation_code, send_verification_code_to_user
+<<<<<<< HEAD
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.views import TokenObtainPairView
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
@@ -28,12 +29,45 @@ class LoginAPIView(TokenObtainPairView):
     permission_classes = [AllowAny]
     serializer_class = TokenObtainPairSerializer
 
+=======
+from drf_yasg import openapi
+>>>>>>> 76f63b2 (1)
 
 
-class UserRegisterAPIView(generics.CreateAPIView):
+class UserRegisterAPIView(generics.GenericAPIView):
     queryset = User.objects.all()
     serializer_class = UserSerializer
+<<<<<<< HEAD
     permission_classes = [AllowAny]
+=======
+
+    @swagger_auto_schema(
+        request_body=UserSerializer,
+        responses={
+            200: openapi.Response(
+                description="Foydalanuvchi ID bilan muvaffaqiyatli ro'yxatdan o'tdi",
+                schema=openapi.Schema(
+                    type=openapi.TYPE_OBJECT,
+                    properties={
+                        'user_id': openapi.Schema(type=openapi.TYPE_INTEGER, description='Foydalanuvchi IDsi')
+                    },
+                    required=['user_id']
+                )
+            ),
+            400: "Noto‘g‘ri ma'lumot yuborildi"
+        }
+    )
+    def post(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        if serializer.is_valid():
+            user = serializer.save()
+            return Response({'user_id': user.id}, status=200)
+        return Response(serializer.errors, status=400)
+
+class UserListAPIView(generics.ListAPIView):
+    queryset = User.objects.all()
+    serializer_class = UserSerializer
+>>>>>>> 76f63b2 (1)
 
 
 class ConfirmEmailView(APIView):

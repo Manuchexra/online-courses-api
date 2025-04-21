@@ -9,8 +9,8 @@ def generate_confirmation_code():
 
 
 def send_confirmation_code_to_user(user, code):
-    subject = 'Soffwork.uz | Tasdiqlash Kodingiz'
-    message = f'Sizning soffwork.uz uchun tasdiqlash kodingiz: {code}'
+    subject = 'Tasdiqlash Kodingiz'
+    message = f'Sizning tasdiqlash kodingiz: {code}'
     from_email = settings.EMAIL_HOST_USER
     recipient_list = [user.email]
     try:
